@@ -14,9 +14,11 @@
 		12BEE9C81C8F546B002F8361 /* launch.xib in Resources */ = {isa = PBXBuildFile; fileRef = 12BEE9C61C8F546B002F8361 /* launch.xib */; };
 		12BEE9C91C8F546B002F8361 /* noise_sample.wav in Resources */ = {isa = PBXBuildFile; fileRef = 12BEE9C71C8F546B002F8361 /* noise_sample.wav */; };
 		12BEE9CB1C8F54B8002F8361 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 12BEE9CA1C8F54B8002F8361 /* main.m */; };
+		4E20565E4641024B696E0196 /* libPods-TreasureHunt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C766154C14B2327894A465F0 /* libPods-TreasureHunt.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		03C039201D8E67FAFB85D67A /* Pods-TreasureHunt.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreasureHunt.release.xcconfig"; path = "Pods/Target Support Files/Pods-TreasureHunt/Pods-TreasureHunt.release.xcconfig"; sourceTree = "<group>"; };
 		122508B21C99FFC50092EC1B /* TreasureHuntRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TreasureHuntRenderer.h; sourceTree = SOURCE_ROOT; };
 		122508B31C99FFC50092EC1B /* TreasureHuntRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TreasureHuntRenderer.m; sourceTree = SOURCE_ROOT; };
 		12BEE99E1C8F53AB002F8361 /* TreasureHunt.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TreasureHunt.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -30,6 +32,8 @@
 		12BEE9C61C8F546B002F8361 /* launch.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = launch.xib; sourceTree = SOURCE_ROOT; };
 		12BEE9C71C8F546B002F8361 /* noise_sample.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = noise_sample.wav; sourceTree = SOURCE_ROOT; };
 		12BEE9CA1C8F54B8002F8361 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = SOURCE_ROOT; };
+		36426342D26636CD637C7496 /* Pods-TreasureHunt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreasureHunt.debug.xcconfig"; path = "Pods/Target Support Files/Pods-TreasureHunt/Pods-TreasureHunt.debug.xcconfig"; sourceTree = "<group>"; };
+		C766154C14B2327894A465F0 /* libPods-TreasureHunt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TreasureHunt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -37,6 +41,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4E20565E4641024B696E0196 /* libPods-TreasureHunt.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -48,6 +53,8 @@
 			children = (
 				12BEE9A01C8F53AB002F8361 /* TreasureHunt */,
 				12BEE99F1C8F53AB002F8361 /* Products */,
+				94223599BFB60703D11C3C3D /* Pods */,
+				56EBE6FE68F4BDBA3C75A87D /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -86,6 +93,23 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		56EBE6FE68F4BDBA3C75A87D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				C766154C14B2327894A465F0 /* libPods-TreasureHunt.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		94223599BFB60703D11C3C3D /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				36426342D26636CD637C7496 /* Pods-TreasureHunt.debug.xcconfig */,
+				03C039201D8E67FAFB85D67A /* Pods-TreasureHunt.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -93,9 +117,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 12BEE9B51C8F53AB002F8361 /* Build configuration list for PBXNativeTarget "TreasureHunt" */;
 			buildPhases = (
+				F1A2E1210A7A03530350B40B /* [CP] Check Pods Manifest.lock */,
 				12BEE99A1C8F53AB002F8361 /* Sources */,
 				12BEE99B1C8F53AB002F8361 /* Frameworks */,
 				12BEE99C1C8F53AB002F8361 /* Resources */,
+				A3673A671DDFBD729B520067 /* [CP] Embed Pods Frameworks */,
+				0CB7B3020B2F84F2A34A7376 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -116,6 +143,7 @@
 				TargetAttributes = {
 					12BEE99D1C8F53AB002F8361 = {
 						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = SAK9HHXJUB;
 					};
 				};
 			};
@@ -148,6 +176,54 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0CB7B3020B2F84F2A34A7376 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-TreasureHunt/Pods-TreasureHunt-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		A3673A671DDFBD729B520067 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-TreasureHunt/Pods-TreasureHunt-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		F1A2E1210A7A03530350B40B /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		12BEE99A1C8F53AB002F8361 /* Sources */ = {
@@ -247,23 +323,31 @@
 		};
 		12BEE9B61C8F53AB002F8361 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 36426342D26636CD637C7496 /* Pods-TreasureHunt.debug.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/TreasureHunt-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.test.TreasureHunt;
+				PRODUCT_BUNDLE_IDENTIFIER = com.richardchen.;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
 		12BEE9B71C8F53AB002F8361 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 03C039201D8E67FAFB85D67A /* Pods-TreasureHunt.release.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/TreasureHunt-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.test.TreasureHunt;
+				PRODUCT_BUNDLE_IDENTIFIER = com.richardchen.;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};
