@@ -15,6 +15,7 @@
 		12BEE9C91C8F546B002F8361 /* noise_sample.wav in Resources */ = {isa = PBXBuildFile; fileRef = 12BEE9C71C8F546B002F8361 /* noise_sample.wav */; };
 		12BEE9CB1C8F54B8002F8361 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 12BEE9CA1C8F54B8002F8361 /* main.m */; };
 		4E20565E4641024B696E0196 /* libPods-TreasureHunt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C766154C14B2327894A465F0 /* libPods-TreasureHunt.a */; };
+		B0609F171D080AAF006D78F0 /* 360_image.jpg in Resources */ = {isa = PBXBuildFile; fileRef = B0609F161D080AAF006D78F0 /* 360_image.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +34,7 @@
 		12BEE9C71C8F546B002F8361 /* noise_sample.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = noise_sample.wav; sourceTree = SOURCE_ROOT; };
 		12BEE9CA1C8F54B8002F8361 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = SOURCE_ROOT; };
 		36426342D26636CD637C7496 /* Pods-TreasureHunt.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TreasureHunt.debug.xcconfig"; path = "Pods/Target Support Files/Pods-TreasureHunt/Pods-TreasureHunt.debug.xcconfig"; sourceTree = "<group>"; };
+		B0609F161D080AAF006D78F0 /* 360_image.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = 360_image.jpg; path = ../../../../../../Downloads/360_image.jpg; sourceTree = "<group>"; };
 		C766154C14B2327894A465F0 /* libPods-TreasureHunt.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TreasureHunt.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -69,6 +71,7 @@
 		12BEE9A01C8F53AB002F8361 /* TreasureHunt */ = {
 			isa = PBXGroup;
 			children = (
+				B0609F161D080AAF006D78F0 /* 360_image.jpg */,
 				12BEE9C61C8F546B002F8361 /* launch.xib */,
 				12BEE9C71C8F546B002F8361 /* noise_sample.wav */,
 				12BEE9B81C8F5426002F8361 /* TreasureHuntAppDelegate.h */,
@@ -171,6 +174,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				12BEE9C91C8F546B002F8361 /* noise_sample.wav in Resources */,
+				B0609F171D080AAF006D78F0 /* 360_image.jpg in Resources */,
 				12BEE9C81C8F546B002F8361 /* launch.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
