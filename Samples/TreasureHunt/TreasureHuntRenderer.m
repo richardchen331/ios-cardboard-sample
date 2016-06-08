@@ -2,8 +2,8 @@
 #error "This file requires ARC support. Compile with -fobjc-arc"
 #endif
 
-#define NUM_GRID_VERTICES 72
-#define NUM_GRID_COLORS 96
+#define NUM_GRID_VERTICES 18
+#define NUM_GRID_COLORS 24
 
 #import "TreasureHuntRenderer.h"
 
@@ -26,17 +26,14 @@ static const char *kVertexShaderString =
     "attribute vec3 aVertex; \n"
     "attribute vec4 aColor;\n"
     "varying vec4 vColor;\n"
-    "varying vec3 vGrid;  \n"
     "void main(void) { \n"
-    "  vGrid = aVertex + uPosition; \n"
-    "  vec4 pos = vec4(vGrid, 1.0); \n"
+    "  vec4 pos = vec4(aVertex + uPosition, 1.0); \n"
     "  vColor = aColor;"
     "  gl_Position = uMVP * pos; \n"
     "    \n"
     "}\n";
 
 // Fragment shader for the floorplan grid.
-// Line patters are generated based on the fragment's position in 3d.
 static const char* kGridFragmentShaderString =
     "#version 100\n"
     "\n"
@@ -44,54 +41,18 @@ static const char* kGridFragmentShaderString =
     "precision mediump float;\n"
     "#endif\n"
     "varying vec4 vColor;\n"
-    "varying vec3 vGrid;\n"
     "\n"
     "void main() {\n"
-    "    float depth = gl_FragCoord.z / gl_FragCoord.w;\n"
-    "    if ((mod(abs(vGrid.x), 10.0) < 0.1) ||\n"
-    "        (mod(abs(vGrid.z), 10.0) < 0.1)) {\n"
-    "      gl_FragColor = max(0.0, (90.0-depth) / 90.0) *\n"
-    "                     vec4(1.0, 1.0, 1.0, 1.0) + \n"
-    "                     min(1.0, depth / 90.0) * vColor;\n"
-    "    } else {\n"
-    "      gl_FragColor = vColor;\n"
-    "    }\n"
+    "  gl_FragColor = vColor;\n"
     "}\n";
 
-// The grid lines on the floor are rendered procedurally and large polygons cause floating point
-// precision problems on some architectures. So we split the floor into 4 quadrants.
 static const float kGridVertices[NUM_GRID_VERTICES] = {
-  // +X, +Z quadrant
-  200.0f, 0.0f, 0.0f,
-  0.0f, 0.0f, 0.0f,
-  0.0f, 0.0f, 200.0f,
-  200.0f, 0.0f, 0.0f,
-  0.0f, 0.0f, 200.0f,
-  200.0f, 0.0f, 200.0f,
-
-  // -X, +Z quadrant
-  0.0f, 0.0f, 0.0f,
-  -200.0f, 0.0f, 0.0f,
-  -200.0f, 0.0f, 200.0f,
-  0.0f, 0.0f, 0.0f,
-  -200.0f, 0.0f, 200.0f,
-  0.0f, 0.0f, 200.0f,
-
-  // +X, -Z quadrant
   200.0f, 0.0f, -200.0f,
-  0.0f, 0.0f, -200.0f,
-  0.0f, 0.0f, 0.0f,
-  200.0f, 0.0f, -200.0f,
-  0.0f, 0.0f, 0.0f,
-  200.0f, 0.0f, 0.0f,
-
-  // -X, -Z quadrant
-  0.0f, 0.0f, -200.0f,
   -200.0f, 0.0f, -200.0f,
-  -200.0f, 0.0f, 0.0f,
-  0.0f, 0.0f, -200.0f,
-  -200.0f, 0.0f, 0.0f,
-  0.0f, 0.0f, 0.0f,
+  -200.0f, 0.0f, 200.0f,
+  200.0f, 0.0f, -200.0f,
+  -200.0f, 0.0f, 200.0f,
+  200.0f, 0.0f, 200.0f,
 };
 
 static const float kGridColors[NUM_GRID_COLORS] = {
@@ -101,35 +62,9 @@ static const float kGridColors[NUM_GRID_COLORS] = {
   0.0f, 0.3398f, 0.9023f, 1.0f,
   0.0f, 0.3398f, 0.9023f, 1.0f,
   0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
 };
 
-// Cube size (scale).
-static const float kCubeSize = 1.0f;
-
-// Grid size (scale).
-static const float kGridSize = 1.0f;
-
 static GLuint LoadShader(GLenum type, const char *shader_src) {
-  GLint compiled = 0;
-
   // Create the shader object
   const GLuint shader = glCreateShader(type);
   // Load the shader source
@@ -137,8 +72,6 @@ static GLuint LoadShader(GLenum type, const char *shader_src) {
 
   // Compile the shader
   glCompileShader(shader);
-  // Check the compile status
-  glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
 
   return shader;
 }
@@ -189,7 +122,7 @@ static GLuint LoadShader(GLenum type, const char *shader_src) {
   _grid_position[2] = 0;
 
   for (int i = 0; i < NUM_GRID_VERTICES; ++i) {
-    _grid_vertices[i] = (GLfloat)(kGridVertices[i] * kCubeSize);
+    _grid_vertices[i] = (GLfloat)(kGridVertices[i]);
   }
   glGenBuffers(1, &_grid_vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, _grid_vertex_buffer);
@@ -197,7 +130,7 @@ static GLuint LoadShader(GLenum type, const char *shader_src) {
 
   // Initialize the color data for the grid mesh.
   for (int i = 0; i < NUM_GRID_COLORS; ++i) {
-    _grid_colors[i] = (GLfloat)(kGridColors[i] * kGridSize);
+    _grid_colors[i] = (GLfloat)(kGridColors[i]);
   }
   glGenBuffers(1, &_grid_color_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, _grid_color_buffer);
