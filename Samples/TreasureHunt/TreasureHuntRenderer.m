@@ -2,9 +2,8 @@
 #error "This file requires ARC support. Compile with -fobjc-arc"
 #endif
 
-#define NUM_GRID_VERTICES 18
-#define NUM_GRID_COLORS 24
-#define NUM_GRID_TEXTURES 12
+#define NUM_GRID_VERTICES 4
+#define NUM_GRID_INDICES 6
 
 #import "TreasureHuntRenderer.h"
 
@@ -14,6 +13,8 @@
 #import <OpenGLES/ES2/gl.h>
 #import <OpenGLES/ES2/glext.h>
 #import <QuartzCore/QuartzCore.h>
+
+#import <math.h>
 
 #import "GVRAudioEngine.h"
 #import "GVRHeadTransform.h"
@@ -52,31 +53,29 @@ static const char* kGridFragmentShaderString =
     "  gl_FragColor = texture2D(ourTexture, vTexture);\n"
     "}\n";
 
-static const float kGridVertices[NUM_GRID_VERTICES] = {
-  200.0f, 0.0f, -200.0f,
-  -200.0f, 0.0f, -200.0f,
-  -200.0f, 0.0f, 200.0f,
-  200.0f, 0.0f, -200.0f,
-  -200.0f, 0.0f, 200.0f,
-  200.0f, 0.0f, 200.0f,
+static const float kGridVertices[NUM_GRID_VERTICES * 3] = {
+    200.0f, 0.0f, -200.0f,
+    -200.0f, 0.0f, -200.0f,
+    -200.0f, 0.0f, 200.0f,
+    200.0f, 0.0f, 200.0f,
 };
 
-static const float kGridColors[NUM_GRID_COLORS] = {
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
-  0.0f, 0.3398f, 0.9023f, 1.0f,
+static const float kGridColors[NUM_GRID_VERTICES * 4] = {
+    0.0f, 0.3398f, 0.9023f, 1.0f,
+    0.0f, 0.3398f, 0.9023f, 1.0f,
+    0.0f, 0.3398f, 0.9023f, 1.0f,
+    0.0f, 0.3398f, 0.9023f, 1.0f,
 };
 
-static const float kGridTextures[NUM_GRID_TEXTURES] = {
+static const float kGridTextures[NUM_GRID_VERTICES * 2] = {
     1.0f, 1.0f,
     0.0f, 1.0f,
     0.0f, 0.0f,
-    1.0f, 1.0f,
-    0.0f, 0.0f,
     1.0f, 0.0f,
+};
+
+static const short kGridIndices[NUM_GRID_INDICES] = {
+    0, 1, 2, 0, 2, 3
 };
 
 static GLuint LoadShader(GLenum type, const char *shader_src) {
@@ -133,9 +132,10 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
 @implementation TreasureHuntRenderer {
 
   // GL variables for the grid.
-  GLfloat _grid_vertices[NUM_GRID_VERTICES];
-  GLfloat _grid_colors[NUM_GRID_COLORS];
-  GLfloat _grid_textures[NUM_GRID_TEXTURES];
+  GLfloat _grid_vertices[NUM_GRID_VERTICES * 3];
+  GLfloat _grid_colors[NUM_GRID_VERTICES * 4];
+  GLfloat _grid_textures[NUM_GRID_VERTICES * 2];
+  GLshort _grid_indices[NUM_GRID_INDICES];
   GLfloat _grid_position[3];
 
   GLuint _grid_program;
@@ -147,6 +147,7 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
   GLuint _grid_vertex_buffer;
   GLuint _grid_color_buffer;
   GLuint _grid_texture_buffer;
+  GLuint _grid_index_buffer;
 }
 
 #pragma mark - GVRCardboardViewDelegate overrides
@@ -188,7 +189,7 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
   _grid_position[1] = -20.0f;
   _grid_position[2] = 0;
 
-  for (int i = 0; i < NUM_GRID_VERTICES; ++i) {
+  for (int i = 0; i < NUM_GRID_VERTICES * 3; ++i) {
     _grid_vertices[i] = (GLfloat)(kGridVertices[i]);
   }
   glGenBuffers(1, &_grid_vertex_buffer);
@@ -196,19 +197,26 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
   glBufferData(GL_ARRAY_BUFFER, sizeof(_grid_vertices), _grid_vertices, GL_STATIC_DRAW);
 
   // Initialize the color data for the grid mesh.
-  for (int i = 0; i < NUM_GRID_COLORS; ++i) {
+  for (int i = 0; i < NUM_GRID_VERTICES * 4; ++i) {
     _grid_colors[i] = (GLfloat)(kGridColors[i]);
   }
   glGenBuffers(1, &_grid_color_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, _grid_color_buffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(_grid_colors), _grid_colors, GL_STATIC_DRAW);
 
-  for (int i = 0; i < NUM_GRID_TEXTURES; ++i) {
+  for (int i = 0; i < NUM_GRID_VERTICES * 2; ++i) {
     _grid_textures[i] = (GLfloat)(kGridTextures[i]);
   }
   glGenBuffers(1, &_grid_texture_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, _grid_texture_buffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(_grid_textures), _grid_textures, GL_STATIC_DRAW);
+
+  for (int i = 0; i < NUM_GRID_INDICES; ++i) {
+    _grid_indices[i] = (GLfloat)(kGridIndices[i]);
+  }
+  glGenBuffers(1, &_grid_index_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _grid_index_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_grid_indices), _grid_indices, GL_STATIC_DRAW);
 
   GLKTextureInfo *spriteTexture;
   NSError *theError;
@@ -274,7 +282,9 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
   glVertexAttribPointer(_grid_texture_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
   glEnableVertexAttribArray(_grid_texture_attrib);
 
-  glDrawArrays(GL_TRIANGLES, 0, NUM_GRID_VERTICES / 3);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _grid_index_buffer);
+
+  glDrawElements(GL_TRIANGLES, NUM_GRID_INDICES, GL_UNSIGNED_SHORT, 0);
   glDisableVertexAttribArray(_grid_vertex_attrib);
 }
 
