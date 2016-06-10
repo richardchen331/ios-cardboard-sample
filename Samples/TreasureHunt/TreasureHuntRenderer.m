@@ -2,8 +2,10 @@
 #error "This file requires ARC support. Compile with -fobjc-arc"
 #endif
 
-#define NUM_GRID_VERTICES 4
-#define NUM_GRID_INDICES 6
+#define NUM_SLICES 50
+#define NUM_PARALLELS (NUM_SLICES / 2)
+#define NUM_VERTICIES ((NUM_PARALLELS + 1) * (NUM_SLICES + 1))
+#define NUM_INDICES (NUM_PARALLELS * NUM_SLICES * 6)
 
 #import "TreasureHuntRenderer.h"
 
@@ -24,59 +26,29 @@ static const char *kVertexShaderString =
     "#version 100\n"
     "\n"
     "uniform mat4 uMVP; \n"
-    "uniform vec3 uPosition; \n"
     "attribute vec3 aVertex; \n"
-    "attribute vec4 aColor;\n"
     "attribute vec2 aTexture;\n"
-    "varying vec4 vColor;\n"
     "varying vec2 vTexture;\n"
     "void main(void) { \n"
-    "  vec4 pos = vec4(aVertex + uPosition, 1.0); \n"
-    "  vColor = aColor;"
+    "  vec4 pos = vec4(aVertex, 1.0); \n"
     "  vTexture = aTexture;"
     "  gl_Position = uMVP * pos; \n"
     "    \n"
     "}\n";
 
-// Fragment shader for the floorplan grid.
-static const char* kGridFragmentShaderString =
+// Fragment shader implementation.
+static const char* kSphereFragmentShaderString =
     "#version 100\n"
     "\n"
     "#ifdef GL_ES\n"
     "precision mediump float;\n"
     "#endif\n"
-    "varying vec4 vColor;\n"
     "varying vec2 vTexture;\n"
     "uniform sampler2D ourTexture;\n"
     "\n"
     "void main() {\n"
     "  gl_FragColor = texture2D(ourTexture, vTexture);\n"
     "}\n";
-
-static const float kGridVertices[NUM_GRID_VERTICES * 3] = {
-    200.0f, 0.0f, -200.0f,
-    -200.0f, 0.0f, -200.0f,
-    -200.0f, 0.0f, 200.0f,
-    200.0f, 0.0f, 200.0f,
-};
-
-static const float kGridColors[NUM_GRID_VERTICES * 4] = {
-    0.0f, 0.3398f, 0.9023f, 1.0f,
-    0.0f, 0.3398f, 0.9023f, 1.0f,
-    0.0f, 0.3398f, 0.9023f, 1.0f,
-    0.0f, 0.3398f, 0.9023f, 1.0f,
-};
-
-static const float kGridTextures[NUM_GRID_VERTICES * 2] = {
-    1.0f, 1.0f,
-    0.0f, 1.0f,
-    0.0f, 0.0f,
-    1.0f, 0.0f,
-};
-
-static const short kGridIndices[NUM_GRID_INDICES] = {
-    0, 1, 2, 0, 2, 3
-};
 
 static GLuint LoadShader(GLenum type, const char *shader_src) {
   GLint compiled = 0;
@@ -131,23 +103,14 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
 
 @implementation TreasureHuntRenderer {
 
-  // GL variables for the grid.
-  GLfloat _grid_vertices[NUM_GRID_VERTICES * 3];
-  GLfloat _grid_colors[NUM_GRID_VERTICES * 4];
-  GLfloat _grid_textures[NUM_GRID_VERTICES * 2];
-  GLshort _grid_indices[NUM_GRID_INDICES];
-  GLfloat _grid_position[3];
-
-  GLuint _grid_program;
-  GLint _grid_vertex_attrib;
-  GLint _grid_color_attrib;
-  GLint _grid_texture_attrib;
-  GLint _grid_position_uniform;
-  GLint _grid_mvp_matrix;
-  GLuint _grid_vertex_buffer;
-  GLuint _grid_color_buffer;
-  GLuint _grid_texture_buffer;
-  GLuint _grid_index_buffer;
+  // GL variables for the sphere.
+  GLuint _sphere_program;
+  GLint _sphere_vertex_attrib;
+  GLint _sphere_texture_attrib;
+  GLint _sphere_mvp_matrix;
+  GLuint _sphere_vertex_buffer;
+  GLuint _sphere_texture_buffer;
+  GLuint _sphere_index_buffer;
 }
 
 #pragma mark - GVRCardboardViewDelegate overrides
@@ -158,65 +121,83 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
   // Load the vertex/fragment shaders.
   const GLuint vertex_shader = LoadShader(GL_VERTEX_SHADER, kVertexShaderString);
   NSAssert(vertex_shader != 0, @"Failed to load vertex shader");
-  const GLuint grid_fragment_shader = LoadShader(GL_FRAGMENT_SHADER, kGridFragmentShaderString);
-  NSAssert(grid_fragment_shader != 0, @"Failed to load grid fragment shader");
+  const GLuint sphere_fragment_shader = LoadShader(GL_FRAGMENT_SHADER, kSphereFragmentShaderString);
+  NSAssert(sphere_fragment_shader != 0, @"Failed to load sphere fragment shader");
 
-  /////// Create the program object for the grid.
+  /////// Create the program object for the sphere.
 
-  _grid_program = glCreateProgram();
-  NSAssert(_grid_program != 0, @"Failed to create program");
-  glAttachShader(_grid_program, vertex_shader);
-  glAttachShader(_grid_program, grid_fragment_shader);
-  glLinkProgram(_grid_program);
-  NSAssert(checkProgramLinkStatus(_grid_program), @"Failed to link _grid_program");
+  _sphere_program = glCreateProgram();
+  NSAssert(_sphere_program != 0, @"Failed to create program");
+  glAttachShader(_sphere_program, vertex_shader);
+  glAttachShader(_sphere_program, sphere_fragment_shader);
+  glLinkProgram(_sphere_program);
+  NSAssert(checkProgramLinkStatus(_sphere_program), @"Failed to link _sphere_program");
 
   // Get the location of our attributes so we can bind data to them later.
-  _grid_vertex_attrib = glGetAttribLocation(_grid_program, "aVertex");
-  NSAssert(_grid_vertex_attrib != -1, @"glGetAttribLocation failed for aVertex");
-  _grid_color_attrib = glGetAttribLocation(_grid_program, "aColor");
-  NSAssert(_grid_color_attrib != -1, @"glGetAttribLocation failed for aColor");
-  _grid_texture_attrib = glGetAttribLocation(_grid_program, "aTexture");
-  NSAssert(_grid_texture_attrib != -1, @"glGetAttribLocation failed for aTexture");
+  _sphere_vertex_attrib = glGetAttribLocation(_sphere_program, "aVertex");
+  NSAssert(_sphere_vertex_attrib != -1, @"glGetAttribLocation failed for aVertex");
+  _sphere_texture_attrib = glGetAttribLocation(_sphere_program, "aTexture");
+  NSAssert(_sphere_texture_attrib != -1, @"glGetAttribLocation failed for aTexture");
 
   // After linking, fetch references to the uniforms in our shader.
-  _grid_mvp_matrix = glGetUniformLocation(_grid_program, "uMVP");
-  _grid_position_uniform = glGetUniformLocation(_grid_program, "uPosition");
-  NSAssert(_grid_mvp_matrix != -1 && _grid_position_uniform != -1,
-           @"Error fetching uniform values for shader.");
+  _sphere_mvp_matrix = glGetUniformLocation(_sphere_program, "uMVP");
+  NSAssert(_sphere_mvp_matrix != -1, @"Error fetching uniform values for shader.");
 
-  // Position grid below the camera.
-  _grid_position[0] = 0;
-  _grid_position[1] = -20.0f;
-  _grid_position[2] = 0;
+  float radius=99.9f; //Radius should be large but keep it between the near and far planes.
+  int parallel;
+  int slice;
+  float angleStep = (2.0f * 3.1415926) / ((float) NUM_SLICES);
 
-  for (int i = 0; i < NUM_GRID_VERTICES * 3; ++i) {
-    _grid_vertices[i] = (GLfloat)(kGridVertices[i]);
+  GLfloat _sphere_vertices[3 * NUM_VERTICIES];
+  GLfloat _sphere_textures[2 * NUM_VERTICIES];
+  GLshort _sphere_indices[NUM_INDICES];
+
+  for (parallel = 0; parallel < NUM_PARALLELS + 1; parallel++)
+  {
+    for (slice = 0; slice < NUM_SLICES + 1; slice++)
+    {
+      int vertex = (parallel * (NUM_SLICES + 1) + slice) * 3;
+      _sphere_vertices[vertex + 0] = - radius * (float)sin(angleStep * (double)parallel) * (float)sin(angleStep * (double)slice);
+      _sphere_vertices[vertex + 1] = - radius * (float)cos(angleStep * (double)parallel);
+      _sphere_vertices[vertex + 2] = radius * (float)sin(angleStep * (double)parallel) * (float)cos(angleStep * (double)slice);
+      int texIndex = (parallel * (NUM_SLICES + 1) + slice) * 2;
+      _sphere_textures[texIndex + 0] = (1.0f - (float) slice / (float) NUM_SLICES);
+      _sphere_textures[texIndex + 1] = (1.0f - (float) parallel  / (float) NUM_PARALLELS);
+    }
   }
-  glGenBuffers(1, &_grid_vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, _grid_vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(_grid_vertices), _grid_vertices, GL_STATIC_DRAW);
+  // Generate the indices
+  int thisIndex = 0;
+  for ( parallel = 0; parallel < NUM_PARALLELS ; parallel++ )
+  {
+    for ( slice = 0; slice < NUM_SLICES; slice++ )
+    {
+      _sphere_indices[thisIndex] = (short)(parallel * (NUM_SLICES + 1) + slice);
+      thisIndex++;
+      _sphere_indices[thisIndex] = (short)((parallel + 1) * (NUM_SLICES + 1) + slice);
+      thisIndex++;
+      _sphere_indices[thisIndex] = (short)((parallel + 1) * (NUM_SLICES + 1) + (slice + 1));
+      thisIndex++;
 
-  // Initialize the color data for the grid mesh.
-  for (int i = 0; i < NUM_GRID_VERTICES * 4; ++i) {
-    _grid_colors[i] = (GLfloat)(kGridColors[i]);
+      _sphere_indices[thisIndex] = (short)(parallel * (NUM_SLICES + 1) + slice);
+      thisIndex++;
+      _sphere_indices[thisIndex] = (short)((parallel + 1) * (NUM_SLICES + 1) + (slice + 1));
+      thisIndex++;
+      _sphere_indices[thisIndex] = (short)(parallel * (NUM_SLICES + 1) + (slice + 1));
+      thisIndex++;
+    }
   }
-  glGenBuffers(1, &_grid_color_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, _grid_color_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(_grid_colors), _grid_colors, GL_STATIC_DRAW);
 
-  for (int i = 0; i < NUM_GRID_VERTICES * 2; ++i) {
-    _grid_textures[i] = (GLfloat)(kGridTextures[i]);
-  }
-  glGenBuffers(1, &_grid_texture_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, _grid_texture_buffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(_grid_textures), _grid_textures, GL_STATIC_DRAW);
+  glGenBuffers(1, &_sphere_vertex_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, _sphere_vertex_buffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(_sphere_vertices), _sphere_vertices, GL_STATIC_DRAW);
 
-  for (int i = 0; i < NUM_GRID_INDICES; ++i) {
-    _grid_indices[i] = (GLfloat)(kGridIndices[i]);
-  }
-  glGenBuffers(1, &_grid_index_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _grid_index_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_grid_indices), _grid_indices, GL_STATIC_DRAW);
+  glGenBuffers(1, &_sphere_texture_buffer);
+  glBindBuffer(GL_ARRAY_BUFFER, _sphere_texture_buffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(_sphere_textures), _sphere_textures, GL_STATIC_DRAW);
+
+  glGenBuffers(1, &_sphere_index_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere_index_buffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(_sphere_indices), _sphere_indices, GL_STATIC_DRAW);
 
   GLKTextureInfo *spriteTexture;
   NSError *theError;
@@ -260,32 +241,24 @@ static bool checkProgramLinkStatus(GLuint shader_program) {
 - (void)renderWithModelViewProjectionMatrix:(const float *)model_view_matrix {
 
   // Select our shader.
-  glUseProgram(_grid_program);
-
-  // Set the uniform values that will be used by our shader.
-  glUniform3fv(_grid_position_uniform, 1, _grid_position);
+  glUseProgram(_sphere_program);
 
   // Set the uniform matrix values that will be used by our shader.
-  glUniformMatrix4fv(_grid_mvp_matrix, 1, false, model_view_matrix);
-
-  // Set the grid colors.
-  glBindBuffer(GL_ARRAY_BUFFER, _grid_color_buffer);
-  glVertexAttribPointer(_grid_color_attrib, 4, GL_FLOAT, GL_FALSE, sizeof(float) * 4, 0);
-  glEnableVertexAttribArray(_grid_color_attrib);
+  glUniformMatrix4fv(_sphere_mvp_matrix, 1, false, model_view_matrix);
 
   // Draw our polygons.
-  glBindBuffer(GL_ARRAY_BUFFER, _grid_vertex_buffer);
-  glVertexAttribPointer(_grid_vertex_attrib, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
-  glEnableVertexAttribArray(_grid_vertex_attrib);
+  glBindBuffer(GL_ARRAY_BUFFER, _sphere_vertex_buffer);
+  glVertexAttribPointer(_sphere_vertex_attrib, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+  glEnableVertexAttribArray(_sphere_vertex_attrib);
 
-  glBindBuffer(GL_ARRAY_BUFFER, _grid_texture_buffer);
-  glVertexAttribPointer(_grid_texture_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-  glEnableVertexAttribArray(_grid_texture_attrib);
+  glBindBuffer(GL_ARRAY_BUFFER, _sphere_texture_buffer);
+  glVertexAttribPointer(_sphere_texture_attrib, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+  glEnableVertexAttribArray(_sphere_texture_attrib);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _grid_index_buffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _sphere_index_buffer);
 
-  glDrawElements(GL_TRIANGLES, NUM_GRID_INDICES, GL_UNSIGNED_SHORT, 0);
-  glDisableVertexAttribArray(_grid_vertex_attrib);
+  glDrawElements(GL_TRIANGLES, NUM_INDICES, GL_UNSIGNED_SHORT, 0);
+  glDisableVertexAttribArray(_sphere_vertex_attrib);
 }
 
 - (void)cardboardView:(GVRCardboardView *)cardboardView shouldPauseDrawing:(BOOL)pause {
